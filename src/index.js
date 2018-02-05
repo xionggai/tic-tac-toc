@@ -3,8 +3,14 @@ import ReactDOM from 'react-dom';
 import './index.css';
 
   function Square(props) {
+
+    let className = "square";
+    if (props.highlight) {
+        className = "square highlight";
+    }
+
     return (
-        <button className="square" onClick={props.onClick}>
+        <button className={className} onClick={props.onClick}>
           {props.value}
         </button>
     );
@@ -12,11 +18,14 @@ import './index.css';
   
   class Board extends React.Component {
     renderSquare(i) {
-      return (
-      <Square
-       value={this.props.squares[i]}
-       onClick={() => this.props.hanldeClick(i)}
-       />);
+        const highlight = this.props.highligtLine && this.props.highligtLine.includes(i);
+        return (
+        <Square
+        key = {i}
+        highlight={highlight}
+        value={this.props.squares[i]}
+        onClick={() => this.props.hanldeClick(i)}
+        />);
     }
   
     render() {
@@ -24,7 +33,7 @@ import './index.css';
         let ranges = [...Array(3).keys()];
         const board = ranges.map((row) => {
             return (
-                <div className="board-row">
+                <div className="board-row" key={row}>
                     {
                         ranges.map((col) => {
                             return this.renderSquare(row * 3 + col);
@@ -79,8 +88,9 @@ import './index.css';
     render() {
         const history = this.state.history;
         const current = history[history.length - 1];
-        const winner = calculateWinner(current.squares);
-
+        const winnerInfo = calculateWinner(current.squares);
+        const winner = winnerInfo ? winnerInfo.winner : null;
+        const winLine = winnerInfo? winnerInfo.line : null;
         const moves = history.map((step, move) => {
             const index = step.index;
             const row = Math.floor(index / 3);
@@ -106,7 +116,11 @@ import './index.css';
         return (
             <div className="game">
             <div className="game-board">
-                <Board squares={current.squares} hanldeClick={(i) => this.hanldeClick(i)}/>
+                <Board
+                 squares={current.squares}
+                 highligtLine = {winLine}
+                 hanldeClick={(i) => this.hanldeClick(i)}
+                />
             </div>
             <div className="game-info">
                 <div>{status}</div>
@@ -131,7 +145,7 @@ import './index.css';
     for (let i = 0; i < lines.length; i++) {
       const [a, b, c] = lines[i];
       if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
-        return squares[a];
+        return {winner: squares[a], line: lines[i]};
       }
     }
     return null;
